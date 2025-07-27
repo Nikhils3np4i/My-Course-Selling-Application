@@ -137,7 +137,7 @@ adminRouter.get("/course/bulk", adminAuth, async function(req, res){
     adminId = req.userId;
     try {
 
-        const courses = await courseModel.findOne({
+        const courses = await courseModel.find({
             creatorId: adminId
         });
         res.json({
