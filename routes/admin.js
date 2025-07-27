@@ -108,8 +108,8 @@ adminRouter.put("/course", adminAuth, async function(req, res){
     }, {
         title,
         description,
-        price,
-        imageUrl
+        imageUrl,
+        price
     })
 
     res.json({
@@ -119,12 +119,19 @@ adminRouter.put("/course", adminAuth, async function(req, res){
     
 })
 
-adminRouter.delete("/deleteCourse", function(req, res){
+adminRouter.get("/course/bulk", adminAuth, async function(req, res){
+    adminId = req.userId;
 
+    const courses = await courseModel.findOne({
+        creatorId: adminId
+    });
+    res.json({
+        courses
+    })
+    
 })
 
-
-adminRouter.get("/course/bulk", function(req, res){
+adminRouter.delete("/deleteCourse", function(req, res){
 
 })
 
