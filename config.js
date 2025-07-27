@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const User_JWT_SECRET = process.env.User_JWT_SECRET
 const admin_JWT_SECRET = process.env.admin_JWT_SECRET
 

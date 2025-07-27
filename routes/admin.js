@@ -40,13 +40,13 @@ adminRouter.post("/signin", async function(req, res){
         const getAdmin = await adminModel.findOne({
             email,password
         })
-        if(!admin){
+        if(!getAdmin){
             res.status(401).send({
                 message:"Incorrect credentials"
             })
         } else {
             const token = jwt.sign({
-                id : admin._id.toString()
+                id : getAdmin._id.toString()
             }, admin_JWT_SECRET)
             
             res.cookie("token", token, {
@@ -73,67 +73,114 @@ adminRouter.post("/signin", async function(req, res){
 })
 
 adminRouter.post("/logout", adminAuth, (req, res)=> {
-    res.clearCookie("token", {
+
+
+        res.clearCookie("token", {
         httpOnly: true,
         sameSite: "strict",
         secure: false
+        // secure: true // only if site runs on HTTPS
+    });
+
+    res.send({
+        message: "admin logged out successfully"
     })
+    
 })
 
 adminRouter.post("/course", adminAuth, async function(req, res){
     adminId = req.userId;
     const { title, description, price, imageUrl } = req.body;
 
-    const course = await courseModel.create({
-        title: title,
-        description: description,
-        price: price,
-        imageUrl: imageUrl, // watch a video of harkirat on youtube for creating direct image upload pipeline (creating a web3 saas in 6 hours)
-        creatorId: adminId
-    })
-    res.json({
-        message: "Course created",
-        courseId: course._id
-    });
+
+        const course = await courseModel.create({
+            title: title,
+            description: description,
+            price: price,
+            imageUrl: imageUrl, // watch a video of harkirat on youtube for creating direct image upload pipeline (creating a web3 saas in 6 hours)
+            creatorId: adminId
+        })
+        res.json({
+            message: "Course created",
+            courseId: course._id
+        });
+    
 
 })
 
 adminRouter.put("/course", adminAuth, async function(req, res){
     adminId = req.userId;
     const { title, description, price, imageUrl, courseId } = req.body;
+    try {
 
-    const course = await courseModel.updateOne({
-        _id: courseId,
-        creatorId: adminId
-    }, {
-        title,
-        description,
-        imageUrl,
-        price
-    })
-
-    res.json({
-        message:"Course updated",
-        courseId: course._id
-    })
+        const course = await courseModel.updateOne({
+            _id: courseId,
+            creatorId: adminId
+        }, {
+            title,
+            description,
+            imageUrl,
+            price
+        })
+        
+        res.json({
+            message:"Course updated",
+            courseId: course._id
+        })
+    } catch(err){
+        console.log("error while updating the course: " + e)
+    }
     
 })
 
 adminRouter.get("/course/bulk", adminAuth, async function(req, res){
     adminId = req.userId;
+    try {
 
-    const courses = await courseModel.findOne({
-        creatorId: adminId
-    });
-    res.json({
-        courses
-    })
-    
+        const courses = await courseModel.findOne({
+            creatorId: adminId
+        });
+        res.json({
+            courses
+        })
+    } catch(e){
+        console.log("Error while showing all courses: " + e)
+    }
+
 })
 
-adminRouter.delete("/deleteCourse", function(req, res){
+adminRouter.delete("/deleteCourse", adminAuth, async function(req, res){
+    adminId = req.userId;
+    const courseId = req.body.courseId;
 
+    try {
+
+        const course = await courseModel.findOne({
+            _id: courseId,
+            creatorId: adminId
+        })
+        if(!course){
+            res.status(403).send({
+                message: "Forbidden, You don't have access to this course"
+            })
+        }
+        
+        await courseModel.deleteOne({
+            _id: courseId,
+            creatorId: adminId
+        });
+        
+        res.json({
+            message: "Course Deleted successfully"
+        })
+    }catch(e){
+        console.log("Internal error while Deleting the course: " + e)
+    }
 })
+
+// extra ideas
+
+// delete account end-point could be added
 
 module.exports = {
     adminRouter: adminRouter
