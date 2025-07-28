@@ -1,6 +1,6 @@
 const express = require('express')
 const Router = express.Router;
-const { userModel, purchaseModel } = require('../db');
+const { userModel, purchaseModel, courseModel } = require('../db');
 const jwt = require("jsonwebtoken");
 const { User_JWT_SECRET } = require('../config')
 const { userAuth } = require('../auth')
@@ -101,6 +101,12 @@ userRouter.get("/purchases", userAuth, async function (req, res) {
     const purchases = await purchaseModel.find({
         userId
     })
+
+    const courseData = await courseModel.find({
+        _id: { $in: purchases.map(x => x.courseId) }
+    })
+    
+
     res.json({
         purchases
     })
