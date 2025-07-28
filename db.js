@@ -30,6 +30,12 @@ const purchaseSchema = new Schema({
     userId: ObjectId
 });
 
+// const contentSchema = new Schema({
+//     title: String,
+//     // upper one is for outer (what content users will see before purchasing, The thumbnail and all)
+//     // this should be compeleted for the main course content after purchasing for eg. Video, heading, notes section etc...
+// })
+
 const userModel = mongoose.model("user", userSchema);
 const adminModel = mongoose.model("admin", adminSchema);
 const courseModel = mongoose.model("course", courseSchema);
