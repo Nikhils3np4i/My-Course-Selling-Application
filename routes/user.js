@@ -1,6 +1,6 @@
 const express = require('express')
 const Router = express.Router;
-const { userModel } = require('../db');
+const { userModel, purchaseModel } = require('../db');
 const jwt = require("jsonwebtoken");
 const { User_JWT_SECRET } = require('../config')
 const { userAuth } = require('../auth')
@@ -9,18 +9,18 @@ const { z } = require("zod"); // zod logic to be finished (pending)
 const userRouter = Router();
 
 
-userRouter.post("/signup", async function(req, res){
+userRouter.post("/signup", async function (req, res) {
     const { email, password, firstName, lastName } = req.body; //pending = Zod validation
 
     // 2nd pending = hash the password
-    try{
+    try {
 
-        
+
         const existingUser = await userModel.findOne({ // findOne will return me either the user, or undefined
             email: email
         })
 
-        if(existingUser) {
+        if (existingUser) {
             res.status(403).send({
                 message: "User already exists, Try another email"
             })
@@ -35,29 +35,29 @@ userRouter.post("/signup", async function(req, res){
                 message: "Account Created"
             })
         }
-    } catch(e){
+    } catch (e) {
         console.log("error while creating account " + e)
     }
-    
+
 })
 
-userRouter.post("/signin", async function(req, res){
+userRouter.post("/signin", async function (req, res) {
     const { email, password } = req.body;
     // Pending = ideally password should be hashed, and hence you cant compare the user provided password and the database password
-    try{
+    try {
 
         const getUser = await userModel.findOne({
             email,
             password
         })
-        if(!getUser){
+        if (!getUser) {
             res.status(403).send({
                 message: "User not found"
             })
         } else {
             const token = jwt.sign({
-                id: getUser._id.toString() 
-            }, User_JWT_SECRET, {expiresIn: "7d"});
+                id: getUser._id.toString()
+            }, User_JWT_SECRET, { expiresIn: "7d" });
             // cookie logic
             res.cookie("token", token, {
                 httpOnly: true, //can't be accessedd via JS
@@ -76,9 +76,9 @@ userRouter.post("/signin", async function(req, res){
                 }
             })
         }
-    } catch(err){
+    } catch (err) {
         console.log("error while loggin in the user " + err)
-        res.status(500).send({message: "Internal server error"});
+        res.status(500).send({ message: "Internal server error" });
     }
 })
 
@@ -95,9 +95,14 @@ userRouter.post("/logout", userAuth, (req, res) => {
     })
 })
 
-userRouter.get("/purchases", userAuth, function(req, res){
+userRouter.get("/purchases", userAuth, async function (req, res) {
+    const userId = req.userId;
+
+    const purchases = await purchaseModel.find({
+        userId
+    })
     res.json({
-        message:"Middleware succeeded"
+        purchases
     })
 })
 
